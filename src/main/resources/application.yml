@@ -1,0 +1,71 @@
+# 使用hystrix关注熔断时间，使用feign关注ribbon的读取超时时间（整合了熔断）
+server:
+  port: 8094
+spring:
+  application:
+#   注册服务的名称，注意服务器名称不能使用下划线连接，可以使用中划线连接
+    name: user-consumer
+  cloud:
+# 开启SpringCloud负载均衡中的重试功能，ribbon中整合了（默认是重试到熔断机制的时间），但是zuul整合时需要指定
+    loadbalancer:
+      retry:
+        enabled: true # 开启Spring Cloud的重试功能
+#user-service:   # 注意这是提供某一服务系统的服务名称，仅对这一服务起作用，不能随意抒写
+#  ribbon:
+##    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule  # 修改ribbon中默认的轮询为随机（采用spring系统提供包）
+#    ConnectTimeout: 250 # Ribbon的连接超时时间
+#    ReadTimeout: 5000 # Ribbon的数据读取超时时间
+#    OkToRetryOnAllOperations: true # 是否对所有操作都进行重试
+#    MaxAutoRetriesNextServer: 1 # 切换实例的重试次数
+#    MaxAutoRetries: 1 # 对当前实例的重试次数
+eureka:
+  client:
+#    注册eureka的地址
+    service-url:
+      defaultZone: http://127.0.0.1:8090/eureka,http://127.0.0.1:8091/eureka,http://127.0.0.1:8092/eureka
+  instance:
+#   当其它服务获取地址时提供ip而不是hostname
+    prefer-ip-address: true
+#   指定自己的ip信息，不指定的话会自己寻找
+    ip-address: 127.0.0.1
+# 设置hystrix的超时时间为6000ms，因为ribbon默认的重试时间和熔断机制的默认时间都是1000毫秒，所以先触发熔断机制。
+# 为了让重试机制生效所以熔断机制的默认时间一定要比ribbon的重试时间长
+hystrix:
+  command:
+    default:
+      execution:
+#        timeout:
+#          enabled: true
+        isolation:
+          thread:
+            timeoutInMilliseconds: 6000
+# 开启Feign的熔断功能
+feign:
+  hystrix:
+    enabled: true
+# 请求和响应进行压缩，GZIP压缩，以减少通信过程中的性能损耗
+#  compression:
+# 开启请求压缩
+#    request:
+#      enabled: true
+## 设置压缩的数据类型
+##       mime-types: text/html,application/xml,application/json
+##      min-request-size: 2048 # 设置触发压缩的大小下限
+## 开启响应压缩
+#    response:
+#      enabled: true
+logging:
+  level:
+    com.chengxi: debug
+
+
+#The config for HttpClient
+#http:
+#  maxTotal: 300
+#  defaultMaxPerRoute: 50
+#  connectTimeout: 1000
+#  connectionRequestTimeout: 500
+#  socketTimeout: 5000
+#  staleConnectionCheckEnabled: true
+# 日志级别下也可以指定执行的包名
+

@@ -1,0 +1,5 @@
+## Ribbon简述执行流程
+1. 首先在httpclient配置文件的restTemplate方法上添加@LoadBalanced注解
+2. @LoadBalanced注解的作用是，当你使用被此注解标记的restTemplate的时候，所发出的url会被`LoadBalancerInterceptor`拦截
+3. 在execut方法中根据输入的服务提供者的名称，调用getService获取服务列表中对应的服务
+4. 注意在第三步获取服务的时候RibbonLoadBalanceClient有调用choose方法（Ribbon中简单的轮询）获取其中之一的服务
